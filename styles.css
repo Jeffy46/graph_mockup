@@ -1,0 +1,30 @@
+body {
+    --d: 2px;
+
+    background: radial-gradient(
+        circle at var(--d) var(--d),
+        #000 calc(var(--d) - 1px),
+        #0000 var(--d)
+    ) 0 0 / 50px 50px; 
+    
+    margin: 0;
+    height: 100vh; 
+    position: relative;
+    overflow: hidden; 
+}
+
+.draggable-table{
+    border: solid 1px black;
+    border-radius: 10px;
+    height:200px;
+    width:200px;
+    position: absolute;
+    top:0px;
+    left:0px;
+}
+
+.prevent-select{
+    user-select: none; 
+    font-size: 1.2vw;
+
+}
