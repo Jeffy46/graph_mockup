@@ -118,4 +118,6 @@ let resetFunction = () =>{
     document.querySelectorAll(".draggable-table").forEach(e => e.remove());
     bgPosX=0;
     bgPosY=0;
+    startX=0;
+    startY=0;
 }
