@@ -1,10 +1,12 @@
 const body = document.querySelector("body");
 let tables = document.querySelectorAll(".draggable-table");
+let tablePostions;
 let isDraggingBackground = false;
 let isDraggingTable = null; 
 let startX, startY; 
 let bgPosX = 0, bgPosY = 0; 
 let inputGraph;
+let operations=[];
 
 //xPos and yPos of bg at start
 body.addEventListener("mousedown", (e) => {
@@ -68,7 +70,6 @@ document.getElementById("inputFile").addEventListener("change", function(event) 
     console.log("No file was selected.");
     }
 });
-let operations=[];
 //sending operations from obj into div
 let createDivs=()=>{
     operations = Array.from(inputGraph.operations)
@@ -84,7 +85,6 @@ let createDivs=()=>{
     })
     reInitializeTables();
 }
-let tablePostions;
 //xPos and yPos of tables before movement, allows news divs to be draggable
 let reInitializeTables = () =>{
     tables = document.querySelectorAll(".draggable-table");
