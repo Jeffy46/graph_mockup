@@ -1,6 +1,6 @@
 const body = document.querySelector("body");
 let tables = document.querySelectorAll(".draggable-table");
-let tablePostions;
+let tablePositions=[];
 let isDraggingBackground = false;
 let isDraggingTable = null; 
 let startX, startY; 
@@ -8,7 +8,7 @@ let bgPosX = 0, bgPosY = 0;
 let inputGraph;
 let operations=[];
 
-//xPos and yPos of bg at start
+//press, xPos and yPos of bg at start
 body.addEventListener("mousedown", (e) => {
     if (!e.target.classList.contains("draggable-table")) {
         isDraggingBackground = true;
@@ -59,7 +59,6 @@ document.getElementById("inputFile").addEventListener("change", function(event) 
         const fileContent = e.target.result; 
         try {
         inputGraph = JSON.parse(fileContent);
-        console.log("Parsed JS Object:", inputGraph);
         createDivs();
         } catch (error) {
         console.error("Error parsing JSON:", error);
@@ -73,26 +72,25 @@ document.getElementById("inputFile").addEventListener("change", function(event) 
 //sending operations from obj into div
 let createDivs=()=>{
     operations = Array.from(inputGraph.operations)
-    operations.forEach((t)=>{
-        console.log(t);
-    })
     operations.forEach(o => {
         const div = document.createElement("div");
         div.classList.add("draggable-table");
-        console.log(o.name)
         div.textContent = "Name " + o.name;
+        div.style.left=o.position.x+"px";
+        div.style.top=o.position.y+"px";
         body.append(div);
+        tablePositions.push({
+            element: div,
+            relativeLeft: parseInt(o.position.x),
+            relativeTop: parseInt(o.position.y)
+        });
+        
     })
-    reInitializeTables();
-}
-//xPos and yPos of tables before movement, allows news divs to be draggable
-let reInitializeTables = () =>{
+    initializeOperations();
+};
+//adds events to new operations
+let initializeOperations = () =>{
     tables = document.querySelectorAll(".draggable-table");
-    tablePositions = Array.from(tables).map((table) => ({
-        element: table,
-        startLeft: parseInt(window.getComputedStyle(table).left),
-        startTop: parseInt(window.getComputedStyle(table).top),
-    }));
     tables.forEach((table, index) => {
         table.addEventListener("mousedown", (e) => {
             isDraggingTable = table; 
@@ -114,4 +112,10 @@ let reInitializeTables = () =>{
             }
         });
     });
+};
+
+let resetFunction = () =>{
+    document.querySelectorAll(".draggable-table").forEach(e => e.remove());
+    bgPosX=0;
+    bgPosY=0;
 }
