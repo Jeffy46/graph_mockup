@@ -7,7 +7,8 @@ let startX, startY;
 let bgPosX = 0, bgPosY = 0; 
 let inputGraph;
 let operations=[];
-
+let xPosRandIncrement = 400;
+let yPosRandIncrement = 400;
 //press, xPos and yPos of bg at start
 body.addEventListener("mousedown", (e) => {
     if (!e.target.classList.contains("draggable-table")) {
@@ -70,21 +71,37 @@ document.getElementById("inputFile").addEventListener("change", function(event) 
     }
 });
 //sending operations from obj into div
+
 let createDivs=()=>{
     operations = Array.from(inputGraph.operations)
     operations.forEach(o => {
         const div = document.createElement("div");
         div.classList.add("draggable-table");
         div.textContent = "Name " + o.name;
-        div.style.left=o.position.x+"px";
-        div.style.top=o.position.y+"px";
-        body.append(div);
+        //allows random graph to also be displayed, giving temp x and y values. Soley for visuals
+        if(!o?.position?.x && !o?.position?.y){
+            o.position = {}; 
+            o.position.x = `${xPosRandIncrement}px`;
+            o.position.y = `${yPosRandIncrement}px`;
+            xPosRandIncrement+=300;
+            if(xPosRandIncrement > 1600){
+                xPosRandIncrement=400;
+                yPosRandIncrement+=300; 
+            }
+            div.style.left = o.position.x;
+            div.style.top = o.position.y;
+        }else{
+            div.style.left = o.position.x+"px";
+            div.style.top = o.position.y+"px";
+        }
+        div.style.left = o.position.x+"px";
+        div.style.top = o.position.y+"px";
         tablePositions.push({
             element: div,
             relativeLeft: parseInt(o.position.x),
             relativeTop: parseInt(o.position.y)
         });
-        
+        body.append(div);
     })
     initializeOperations();
 };
@@ -96,7 +113,7 @@ let initializeOperations = () =>{
             isDraggingTable = table; 
             startX = e.clientX - parseInt(window.getComputedStyle(table).left); 
             startY = e.clientY - parseInt(window.getComputedStyle(table).top);
-
+            
             e.stopPropagation(); //idk, doesn't work without this
         });
         //tables into objects and assigns starting relativeX and relativeY 
@@ -120,4 +137,6 @@ let resetFunction = () =>{
     bgPosY=0;
     startX=0;
     startY=0;
+    xPosRandIncrement = 400;
+    yPosRandIncrement = 400;
 }
