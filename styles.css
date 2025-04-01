@@ -1,44 +1,71 @@
 body {
-    --d: 2px;
-    background: radial-gradient(
-        circle at var(--d) var(--d),
-        #000 calc(var(--d) - 1px),
-        #0000 var(--d)
-    ) 0 0 / 50px 50px; 
-    
-    margin: 0;
-    height: 100vh; 
-    padding:40px;
-    position: relative;
-    overflow: hidden; 
+  --d: 2px;
+  background: radial-gradient(
+      circle at var(--d) var(--d),
+      #000 calc(var(--d) - 1px),
+      #0000 var(--d)
+    )
+    0 0 / 50px 50px;
+
+  margin: 0;
+  height: 100vh;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+/*table css*/
+.draggable-table {
+  border: solid 1px black;
+  border-radius: 10px;
+  width: 200px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+}
+.name {
+  font-size: 25px;
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+}
+.inputOutputContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.inputs,
+.outputs {
+  display: flex;
+  flex-direction: column;
+  max-width: 1px;
+}
+/*each input/ouput checkbox */
+.inputs *,
+.outputs * {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 20px;
+  height: 20px;
 }
 
-.draggable-table{
-    border: solid 1px black;
-    border-radius: 10px;
-    height:200px;
-    width:200px;
-    position: absolute;
-    top:0px;
-    left:0px;
-    display:flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+/* reset button and prevent select for adding file*/
+.prevent-select {
+  user-select: none;
+  font-size: 1.2vw;
 }
-
-.prevent-select{
-    user-select: none; 
-    font-size: 1.2vw;
+.reset {
+  float: right;
+  width: 10vw;
+  height: 6vh;
+  font-size: 1.2vw;
+  background-color: pink;
 }
-
-.reset{
-    float:right;
-    width: 10vw;
-    height:6vh;
-    font-size:1.2vw;
-    background-color: pink;
-}
-.reset:active{
-    background-color: red;
+.reset:active {
+  background-color: red;
 }
