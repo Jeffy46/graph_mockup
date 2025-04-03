@@ -1,4 +1,4 @@
-//import { organize } from "./script.ts"
+// import { organize } from "./script.ts"
 const body = document.querySelector("body");
 let tables = document.querySelectorAll(".draggable-table");
 let tablePositions = [];
@@ -12,8 +12,11 @@ let operations = [];
 let xPosRandIncrement = 400;
 let yPosRandIncrement = 400;
 
+let active = true;
 let checkBoxes = [];
 let checkBoxesPositions = [];
+
+const svgCanvas = document.getElementById("connectionSVG");
 
 //press, xPos and yPos of bg at start
 body.addEventListener("mousedown", (e) => {
@@ -46,6 +49,9 @@ document.addEventListener("mousemove", (e) => {
     startX = e.clientX;
     startY = e.clientY;
   }
+  if (active) {
+    refresh();
+  }
 });
 //release
 document.addEventListener("mouseup", () => {
@@ -53,7 +59,6 @@ document.addEventListener("mouseup", () => {
   if (isDraggingTable) {
     isDraggingTable = null;
   }
-  refresh();
 });
 //Obtain object from last inputted json inputted json
 document
@@ -76,9 +81,54 @@ document
       console.log("No file was selected.");
     }
   });
+let createInput = () => {
+  const inputValues = inputGraph.inputs;
+  const inputDiv = document.createElement("div");
+  inputDiv.classList.add("inputTable");
+  inputValues.forEach((i) => {
+    const input = document.createElement("label");
+    const temp = document.createElement("input");
+    const name = document.createElement("div");
+    input.setAttribute("id", i.name);
+    temp.setAttribute("type", "checkbox");
+    temp.classList.add("input-box");
+    name.innerText = i.name;
+    input.append(name);
+    input.append(temp);
+    inputDiv.append(input);
+  });
+  body.append(inputDiv);
+};
+let createOutput = () => {
+  let maxLeft = 0;
+  tablePositions.forEach((table) => {
+    if (table.relativeLeft > maxLeft) {
+      maxLeft = table.relativeLeft;
+    }
+  });
+  const outputValues = inputGraph.outputs;
+  const outputDiv = document.createElement("div");
+  outputDiv.classList.add("outputTable");
+  outputDiv.style.left = `${maxLeft + 500}px`;
+  outputValues.forEach((i) => {
+    const output = document.createElement("label");
+    const temp = document.createElement("input");
+    const name = document.createElement("div");
+    output.setAttribute("id", i.name);
+    temp.setAttribute("type", "checkbox");
+    temp.classList.add("output-box");
+    name.innerText = i.name;
+    output.append(name);
+    output.append(temp);
+    outputDiv.classList.add("draggable-table");
+    outputDiv.append(output);
+  });
+  body.append(outputDiv);
+};
 //sending operations from obj into div
 let createDivs = () => {
-  let operations = Array.from(inputGraph.operations);
+  operations = Array.from(inputGraph.operations);
+  //appends normal operations
   operations.forEach((o) => {
     const mainOperation = document.createElement("div");
     const name = document.createElement("div");
@@ -150,13 +200,15 @@ let createDivs = () => {
 
     body.append(mainOperation);
   });
+  createInput();
+  createOutput();
   initializeOperations();
   parseCheckBoxes();
   addConnections();
-
 };
 //adds events to new operations
 let initializeOperations = () => {
+  active = true;
   tables = document.querySelectorAll(".draggable-table");
   tables.forEach((table, index) => {
     table.addEventListener("mousedown", (e) => {
@@ -180,77 +232,106 @@ let initializeOperations = () => {
     });
   });
 };
+
+let parseCheckBoxes = () => {
+  checkBoxes = document.querySelectorAll(
+    "input[type='checkbox'], output[type='checkbox']"
+  );
+  //parses position of each parsed input/output of operations excluding input and output
+  checkBoxes.forEach((checkbox) => {
+    const rect = checkbox.getBoundingClientRect();
+    if (
+      checkbox.parentElement?.parentElement?.parentElement?.classList.contains(
+        "inputOutputContainer"
+      )
+    ) {
+      checkBoxesPositions.push({
+        x: rect.x,
+        y: rect.y,
+        data: checkbox.nextElementSibling
+          ? checkbox.nextElementSibling.innerText
+          : checkbox.previousElementSibling.innerText,
+        operation:
+          checkbox.parentElement?.parentElement?.parentElement?.parentElement
+            ?.querySelector("div")
+            ?.textContent.trim(),
+      });
+    } else {
+      checkBoxesPositions.push({
+        x: rect.x,
+        y: rect.y,
+        data: checkbox.previousElementSibling.innerText,
+        operation: "this", //not really sure how the links with this works so...
+      });
+    }
+  });
+};
+
+//basic function to draw a line between two coordiantes
+let drawLine = (x1, y1, x2, y2) => {
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", x1);
+  line.setAttribute("y1", y1);
+  line.setAttribute("x2", x2);
+  line.setAttribute("y2", y2);
+  line.setAttribute("stroke", "#5555");
+  line.setAttribute("stroke-width", "2");
+  svgCanvas.appendChild(line);
+};
+
+//draws all lines based on checkBoxesPositions and link arrays
+let addConnections = () => {
+  const links = inputGraph.links;
+  let posOne = [];
+  let posTwo = [];
+  //grabs rels of links from original array and coords of new array
+  links.forEach((l) => {
+    let controlPoints = l.control_points;
+    let temp = Array.from(controlPoints);
+    checkBoxesPositions.forEach((box) => {
+      if (box.data === l.sink.data && box.operation === l.sink.operation) {
+        posTwo = [box.x, box.y];
+      }
+      if (box.data === l.source.data && box.operation === l.source.operation) {
+        posOne = [box.x, box.y];
+      }
+    });
+    if (temp.length === 0) {
+      drawLine(posOne[0] + 5, posOne[1] + 7, posTwo[0] + 5, posTwo[1] + 7);
+    } else {
+      temp.forEach((point, index) => {
+        drawLine(posOne[0] + 5, posOne[1] + 7, point.x + 5, point.y + 7);
+        posOne = [point.x, point.y];
+      });
+      drawLine(posOne[0] + 5, posOne[1] + 7, posTwo[0] + 5, posTwo[1] + 7);
+    }
+  });
+};
+//refreshs lines
+let refresh = () => {
+  svgCanvas.innerHTML = "";
+  parseCheckBoxes();
+  addConnections();
+};
 let resetFunction = () => {
   document.querySelectorAll(".draggable-table").forEach((e) => e.remove());
+  document.querySelector(".inputTable").remove();
   bgPosX = 0;
   bgPosY = 0;
   startX = 0;
   startY = 0;
   xPosRandIncrement = 400;
   yPosRandIncrement = 400;
+  svgCanvas.innerHTML = "";
+  checkBoxes = [];
+  checkBoxesPositions = [];
+  active = false;
 };
 
 document.getElementById("reset").addEventListener("click", resetFunction);
-
-let parseCheckBoxes = () => {
-  checkBoxes = document.querySelectorAll(
-    "input[type='checkbox']",
-    "output[type='checkbox']"
-  ); //parses all input/output objects
-  checkBoxes.forEach((checkbox) => {
-    //parses position of each parsed input/output
-    const rect = checkbox.getBoundingClientRect();
-    checkBoxesPositions.push({
-      x: rect.x,
-      y: rect.y,
-      data: checkbox.nextElementSibling ? checkbox.nextElementSibling.innerText : checkbox.previousElementSibling.innerText,
-            operation:
-        checkbox.parentElement?.parentElement?.parentElement?.parentElement
-          ?.querySelector("div")
-          ?.textContent.trim(),
-    });
-  });
-};
-
-const svgCanvas = document.getElementById("connectionsSVG");
-//basic function to draw a line between two coordiantes
-let drawLine = (x1,y1,x2,y2) => {
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", x1);
-    line.setAttribute("y1", y1);
-    line.setAttribute("x2", x2);
-    line.setAttribute("y2", y2);
-    line.setAttribute("stroke", "red");
-    line.setAttribute("stroke-width", "4");
-    svgCanvas.appendChild(line);
-}
-
-//draws all lines based on checkBoxesPositions and link arrays
-let addConnections = () =>{
-    const links = inputGraph.links;
-    let posOne = [];
-    let posTwo = [];
-    //grabs rels of links from original array and coords of new array
-    links.forEach((l)=>{
-        checkBoxesPositions.forEach(box=>{
-            console.log(box);
-            console.log(l);
-            if(box.data === l.sink.data && box.operation === l.sink.operation){
-                posTwo = [box.x, box.y]
-                console.log(posTwo);
-            }
-            if(box.data === l.source.data && box.operation === l.source.operation){
-                posOne = [box.x, box.y]
-                console.log(posOne);
-
-            }
-        })
-        drawLine(posOne[0]+8, posOne[1]+5, posTwo[0]+8, posTwo[1]+5); 
-    })
-}
-//refreshs lines
-let refresh = ()=>{
-    svgCanvas.innerHTML = "";
-    parseCheckBoxes();
-    addConnections();
-}
+document.getElementById("organize").addEventListener("click", () => {
+  resetFunction();
+  inputGraph = organize(inputGraph);
+  createDivs();
+  refresh();
+});
