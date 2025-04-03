@@ -15,7 +15,7 @@ let yPosRandIncrement = 400;
 let active = true;
 let checkBoxes = [];
 let checkBoxesPositions = [];
-
+let links = [];
 const svgCanvas = document.getElementById("connectionSVG");
 
 //press, xPos and yPos of bg at start
@@ -40,6 +40,14 @@ document.addEventListener("mousemove", (e) => {
     bgPosX += deltaX;
     bgPosY += deltaY;
     body.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+
+    links.forEach((l) => {
+      let temp = l.control_points;
+      temp.forEach((p) => {
+        p.x += deltaX;
+        p.y += deltaY;
+      });
+    });
 
     tablePositions.forEach(({ element, relativeLeft, relativeTop }) => {
       element.style.left = `${relativeLeft + bgPosX}px`;
@@ -81,7 +89,9 @@ document
       console.log("No file was selected.");
     }
   });
+
 let createInput = () => {
+  links = inputGraph.links;
   const inputValues = inputGraph.inputs;
   const inputDiv = document.createElement("div");
   inputDiv.classList.add("inputTable");
@@ -278,16 +288,13 @@ let drawLine = (x1, y1, x2, y2) => {
   line.setAttribute("stroke-width", "2");
   svgCanvas.appendChild(line);
 };
-
 //draws all lines based on checkBoxesPositions and link arrays
 let addConnections = () => {
-  const links = inputGraph.links;
   let posOne = [];
   let posTwo = [];
   //grabs rels of links from original array and coords of new array
   links.forEach((l) => {
     let controlPoints = l.control_points;
-    let temp = Array.from(controlPoints);
     checkBoxesPositions.forEach((box) => {
       if (box.data === l.sink.data && box.operation === l.sink.operation) {
         posTwo = [box.x, box.y];
@@ -296,10 +303,10 @@ let addConnections = () => {
         posOne = [box.x, box.y];
       }
     });
-    if (temp.length === 0) {
+    if (controlPoints.length === 0) {
       drawLine(posOne[0] + 5, posOne[1] + 7, posTwo[0] + 5, posTwo[1] + 7);
     } else {
-      temp.forEach((point, index) => {
+      controlPoints.forEach((point) => {
         drawLine(posOne[0] + 5, posOne[1] + 7, point.x + 5, point.y + 7);
         posOne = [point.x, point.y];
       });
@@ -329,9 +336,9 @@ let resetFunction = () => {
 };
 
 document.getElementById("reset").addEventListener("click", resetFunction);
-document.getElementById("organize").addEventListener("click", () => {
-  resetFunction();
-  inputGraph = organize(inputGraph);
-  createDivs();
-  refresh();
-});
+// document.getElementById("organize").addEventListener("click", () => {
+//   resetFunction();
+//   inputGraph = organize(inputGraph);
+//   createDivs();
+//   refresh();
+// });
